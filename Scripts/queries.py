@@ -1,12 +1,38 @@
-import boto3
+import pandas as pd
+from scripts.config import read_csv_from_s3
 
-from scripts.config import AWS_ACCESS_KEY, AWS_SECRET_KEY, AWS_REGION
+
+def load_players():
+    return read_csv_from_s3("gaming_data/players.csv")
 
 
-def get_s3_client():
-    return boto3.client(
-        "s3",
-        aws_access_key_id=AWS_ACCESS_KEY,
-        aws_secret_access_key=AWS_SECRET_KEY,
-        region_name=AWS_REGION
+def load_games():
+    return read_csv_from_s3("gaming_data/games.csv")
+
+
+def load_achievements():
+    return read_csv_from_s3("gaming_data/achievements.csv")
+
+
+def load_history():
+    return read_csv_from_s3("gaming_data/history.csv")
+
+
+def merge_players_games():
+    players = load_players()
+    history = load_history()
+
+    merged = history.merge(players, on="playerid", how="left")
+    return merged
+
+
+def achievement_counts():
+    history = load_history()
+
+    result = (
+        history.groupby("playerid")
+        .size()
+        .reset_index(name="achievement_count")
     )
+
+    return result
